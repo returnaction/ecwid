@@ -1,5 +1,6 @@
 package com.nikita;
 
+import java.lang.reflect.Array;
 import java.time.LocalDate;
 import java.util.IdentityHashMap;
 
@@ -31,6 +32,21 @@ public class DeepClone {
         // 3 если примитив или неизменяемое вернуть копию как есть.
         if(isPrimitiveOrImmutable(clazz))
             return original;
+
+        // 4 если массив создать новый такого же типа пройтись по элементам скопировать рекурсивно
+        if(clazz.isArray()){
+            int length = Array.getLength(original);
+            Object newArr = Array.newInstance(clazz.getComponentType(), length);
+            copied.put(original, newArr);
+
+            for(int i = 0; i < length; i++){
+                Object originalItem = Array.get(original, i);
+                Object cloned = cloneRecursive(originalItem, copied);
+                Array.set(newArr, i, cloned);
+            }
+
+            return (T) newArr;
+        }
 
         return null;
     }
