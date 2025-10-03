@@ -2,6 +2,8 @@ package com.nikita;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.*;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class DeepCloneTest {
@@ -39,7 +41,7 @@ class DeepCloneTest {
     }
 
     @Test
-    void testObjectArray_shouldDeepClone(){
+    void testObjectArray_shouldDeepClone() {
         Man man1 = new Man();
         man1.setName("Никита");
 
@@ -50,4 +52,38 @@ class DeepCloneTest {
         Man[] clone = DeepClone.deepClone(original);
         assertNotSame(original, clone);
     }
+
+    @Test
+    void testList_shouldDeepClone() {
+        List<String> original = new ArrayList<>();
+        original.add("Java");
+        original.add("Spring");
+        List<String> copy = DeepClone.deepClone(original);
+        assertNotSame(original, copy, "Список должен быть новым объектом");
+        assertEquals(original, copy, "Элементы должны совпадать с дург другом");
+    }
+
+    @Test
+    void testSet_shouldDeepClone(){
+        Set<String> original = new HashSet<>();
+        original.add("Java");
+        original.add("Spring");
+        Set<String> clone = DeepClone.deepClone(original);
+
+        assertNotSame(original, clone);
+        assertEquals(original, clone);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
 }

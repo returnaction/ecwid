@@ -2,7 +2,7 @@ package com.nikita;
 
 import java.lang.reflect.Array;
 import java.time.LocalDate;
-import java.util.IdentityHashMap;
+import java.util.*;
 
 public class DeepClone {
     /// План
@@ -48,7 +48,28 @@ public class DeepClone {
             return (T) newArr;
         }
 
+        // 5 если коллекция создать пустую такого же типа пройтись скопировать элементы
+        if(original instanceof Collection<?> collection){
+           Collection<Object> newCollection = createEmptyCollection(collection);
+           copied.put(original, newCollection);
+
+           for(Object item : collection){
+               Object cloned = cloneRecursive(item, copied);
+               newCollection.add(cloned);
+           }
+
+           return(T) newCollection;
+        }
+
         return null;
+    }
+
+    private static Collection<Object> createEmptyCollection(Collection<?> collection) {
+        if (collection instanceof List<?>) return new ArrayList<>();
+        if (collection instanceof Set<?>) return new HashSet<>();
+        if (collection instanceof Deque<?>) return new LinkedList<>();
+        if (collection instanceof Queue<?>) return new LinkedList<>();
+        return new ArrayList<>();
     }
 
     private static boolean isPrimitiveOrImmutable(Class<?> clazz) {
