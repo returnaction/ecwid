@@ -1,5 +1,6 @@
 package com.nikita;
 
+import java.time.LocalDate;
 import java.util.IdentityHashMap;
 
 public class DeepClone {
@@ -26,6 +27,21 @@ public class DeepClone {
         if(copied.containsKey(original))
             return (T) copied.get(original);
 
+        Class<?> clazz = original.getClass();
+        // 3 если примитив или неизменяемое вернуть копию как есть.
+        if(isPrimitiveOrImmutable(clazz))
+            return original;
+
         return null;
+    }
+
+    private static boolean isPrimitiveOrImmutable(Class<?> clazz) {
+        return clazz.isPrimitive()
+                || clazz.equals(String.class)
+                || clazz.equals(Boolean.class)
+                || clazz.equals(Character.class)
+                || clazz.equals(LocalDate.class)
+                || Number.class.isAssignableFrom(clazz)
+                || clazz.isEnum();
     }
 }
