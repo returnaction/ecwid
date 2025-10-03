@@ -1,6 +1,6 @@
 package com.nikita;
 
-import java.lang.reflect.Array;
+import java.lang.reflect.*;
 import java.time.LocalDate;
 import java.util.*;
 
@@ -14,32 +14,36 @@ public class DeepClone {
 // 6 если map создать пустую  и копи ключи и значения
 // 7 если обычный объект создать через рефликсию гоняем по всем значениям
 // 8 вернуть копию
+    public static <T> T deepClone(T original) {
+        try {
+            return cloneRecursive(original, new IdentityHashMap<>());
 
-    public static <T> T deepClone(T original){
-        return cloneRecursive(original, new IdentityHashMap<>());
+        } catch (Exception e) {
+            throw new RuntimeException("Ошибка при глубоком копировании " + e);
+        }
     }
 
-    private static <T> T cloneRecursive(T original, IdentityHashMap<Object, Object> copied) {
+    private static <T> T cloneRecursive(T original, IdentityHashMap<Object, Object> copied) throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
         // 1 если null вернуть null
-        if(original == null)
+        if (original == null)
             return null;
 
         // 2 если уже копировал вернуть из сохраненной мапы
-        if(copied.containsKey(original))
+        if (copied.containsKey(original))
             return (T) copied.get(original);
 
         Class<?> clazz = original.getClass();
         // 3 если примитив или неизменяемое вернуть копию как есть.
-        if(isPrimitiveOrImmutable(clazz))
+        if (isPrimitiveOrImmutable(clazz))
             return original;
 
         // 4 если массив создать новый такого же типа пройтись по элементам скопировать рекурсивно
-        if(clazz.isArray()){
+        if (clazz.isArray()) {
             int length = Array.getLength(original);
             Object newArr = Array.newInstance(clazz.getComponentType(), length);
             copied.put(original, newArr);
 
-            for(int i = 0; i < length; i++){
+            for (int i = 0; i < length; i++) {
                 Object originalItem = Array.get(original, i);
                 Object cloned = cloneRecursive(originalItem, copied);
                 Array.set(newArr, i, cloned);
@@ -49,23 +53,23 @@ public class DeepClone {
         }
 
         // 5 если коллекция создать пустую такого же типа пройтись скопировать элементы
-        if(original instanceof Collection<?> collection){
-           Collection<Object> newCollection = createEmptyCollection(collection);
-           copied.put(original, newCollection);
+        if (original instanceof Collection<?> collection) {
+            Collection<Object> newCollection = createEmptyCollection(collection);
+            copied.put(original, newCollection);
 
-           for(Object item : collection){
-               Object cloned = cloneRecursive(item, copied);
-               newCollection.add(cloned);
-           }
+            for (Object item : collection) {
+                Object cloned = cloneRecursive(item, copied);
+                newCollection.add(cloned);
+            }
 
-           return(T) newCollection;
+            return (T) newCollection;
         }
 
-        if(original instanceof Map<?, ?> map){
+        if (original instanceof Map<?, ?> map) {
             Map<Object, Object> newMap = createEmtpyMap(map);
             copied.put(original, newMap);
 
-            for(Map.Entry<?,?> entry : map.entrySet()){
+            for (Map.Entry<?, ?> entry : map.entrySet()) {
                 Object newKey = cloneRecursive(entry.getKey(), copied);
                 Object newValue = cloneRecursive(entry.getValue(), copied);
                 newMap.put(newKey, newValue);
@@ -74,20 +78,41 @@ public class DeepClone {
             return (T) newMap;
         }
 
-        return null;
+        // 7 если обычный объект создать через рефликсию гоняем по всем значениям
+
+        Object copy = clazz.getDeclaredConstructor().newInstance();
+        copied.put(original, copy);
+
+        for (Field filed : getAllFields(clazz)) {
+            filed.setAccessible(true);
+            Object filedValue = filed.get(original);
+            Object cloneValue = cloneRecursive(filedValue, copied);
+            filed.set(copy, cloneValue);
+        }
+
+        return (T) copy;
     }
 
-    private static Map<Object, Object> createEmtpyMap(Map<?,?> map) {
-        if(map instanceof LinkedHashMap<?,?> ) return new LinkedHashMap<>();
-        if(map instanceof TreeMap<?,?>) return new TreeMap<>();
+    private static List<Field> getAllFields(Class<?> clazz) {
+        List<Field> fields = new ArrayList<>();
+        while (clazz != null && clazz != Object.class) {
+            fields.addAll(List.of(clazz.getDeclaredFields()));
+            clazz = clazz.getSuperclass();
+        }
+        return fields;
+    }
+
+    private static Map<Object, Object> createEmtpyMap(Map<?, ?> map) {
+        if (map instanceof LinkedHashMap<?, ?>) return new LinkedHashMap<>();
+        if (map instanceof TreeMap<?, ?>) return new TreeMap<>();
         return new HashMap<>();
     }
 
     private static Collection<Object> createEmptyCollection(Collection<?> collection) {
-        if (collection instanceof List<?>) return new ArrayList<>();
-        if (collection instanceof Set<?>) return new HashSet<>();
         if (collection instanceof Deque<?>) return new LinkedList<>();
         if (collection instanceof Queue<?>) return new LinkedList<>();
+        if (collection instanceof Set<?>) return new HashSet<>();
+        if (collection instanceof List<?>) return new ArrayList<>();
         return new ArrayList<>();
     }
 

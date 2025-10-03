@@ -85,7 +85,18 @@ class DeepCloneTest {
         assertEquals(original, clone);
     }
 
+    @Test
+    void testSimpleObjectClone(){
+        Man man = new Man();
+        man.setName("Nikita");
+        man.setAge(34);
 
+        Man copy = DeepClone.deepClone(man);
+
+        assertNotSame(man, copy);
+        assertEquals("Nikita", copy.getName());
+        assertEquals(34, copy.getAge());
+    }
 
 
 
