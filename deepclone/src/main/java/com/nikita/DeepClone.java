@@ -1,5 +1,7 @@
 package com.nikita;
 
+import java.util.IdentityHashMap;
+
 public class DeepClone {
     /// План
 // 1 если null вернуть null
@@ -10,4 +12,20 @@ public class DeepClone {
 // 6 если map создать пустую  и копи ключи и значения
 // 7 если обычный объект создать через рефликсию гоняем по всем значениям
 // 8 вернуть копию
+
+    public static <T> T deepClone(T original){
+        return cloneRecursive(original, new IdentityHashMap<>());
+    }
+
+    private static <T> T cloneRecursive(T original, IdentityHashMap<Object, Object> copied) {
+        // 1 если null вернуть null
+        if(original == null)
+            return null;
+
+        // 2 если уже копировал вернуть из сохраненной мапы
+        if(copied.containsKey(original))
+            return (T) copied.get(original);
+
+        return null;
+    }
 }
