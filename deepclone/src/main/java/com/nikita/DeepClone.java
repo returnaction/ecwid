@@ -61,7 +61,26 @@ public class DeepClone {
            return(T) newCollection;
         }
 
+        if(original instanceof Map<?, ?> map){
+            Map<Object, Object> newMap = createEmtpyMap(map);
+            copied.put(original, newMap);
+
+            for(Map.Entry<?,?> entry : map.entrySet()){
+                Object newKey = cloneRecursive(entry.getKey(), copied);
+                Object newValue = cloneRecursive(entry.getValue(), copied);
+                newMap.put(newKey, newValue);
+            }
+
+            return (T) newMap;
+        }
+
         return null;
+    }
+
+    private static Map<Object, Object> createEmtpyMap(Map<?,?> map) {
+        if(map instanceof LinkedHashMap<?,?> ) return new LinkedHashMap<>();
+        if(map instanceof TreeMap<?,?>) return new TreeMap<>();
+        return new HashMap<>();
     }
 
     private static Collection<Object> createEmptyCollection(Collection<?> collection) {

@@ -74,6 +74,17 @@ class DeepCloneTest {
         assertEquals(original, clone);
     }
 
+    @Test
+    void testHashMap_shouldDeepCline(){
+        Map<String, String> original  = new HashMap<>();
+        original.put("a", "1");
+        original.put("b", "2");
+
+        Map<String, String> clone = DeepClone.deepClone(original);
+        assertNotSame(original, clone);
+        assertEquals(original, clone);
+    }
+
 
 
 
